@@ -171,12 +171,21 @@ def novaclient(context, admin_endpoint=False, privileged_user=False,
     else:
         region_filter = {}
 
+
+
+    # ACDCNOTE(sbra): I'm not sure why they create a new context object here.
+    # I think it's because they use a different version of the nova client.
+    # This isn't done in pike. In any event, because they didn't supply project
+    # or user domain, migration won't work out of the box when multi-domain
+    # support is enabled. I've added the two lines with default domain hardcoded.
     if privileged_user and CONF.os_privileged_user_name:
         context = ctx.RequestContext(
             CONF.os_privileged_user_name, None,
             auth_token=CONF.os_privileged_user_password,
             project_name=CONF.os_privileged_user_tenant,
-            service_catalog=context.service_catalog)
+            service_catalog=context.service_catalog,
+            project_domain='default',
+            user_domain='default')
 
         # When privileged_user is used, it needs to authenticate to Keystone
         # before querying Nova, so we set auth_url to the identity service
